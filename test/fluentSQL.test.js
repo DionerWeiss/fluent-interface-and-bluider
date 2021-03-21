@@ -9,15 +9,16 @@ const data = [
     },
     {
         id: 1,
-        name: 'joão',
+        name: 'maria',
         category: 'developer'
     },
     {
         id: 2,
-        name: 'maria',
+        name: 'joão',
         category: 'manager'
     }
 ]
+
 
 describe('Test Suit for FluentSQL Builder', () => {
     test('#for should return a FluentSQLBuilder instance', () => {
@@ -28,7 +29,7 @@ describe('Test Suit for FluentSQL Builder', () => {
 
     test('#build should return the empty object instance', () => {
         const result = FluentSQLBuilder.for(data).build()
-        const expected = []
+        const expected = data
         expect(result).toStrictEqual(expected)
 
     })
@@ -40,18 +41,62 @@ describe('Test Suit for FluentSQL Builder', () => {
     })
 
     test('#where given a collection it should filter data', () => {
+        const result = FluentSQLBuilder.for(data).where({
+            category: /^dev/
+        }).build()
 
+        const expected = data.filter(({ category }) => category.slice(0, 3) === 'dev')
+        expect(result).toStrictEqual(expected)
     })
 
     test('#select given a collection it should return only specific fields', () => {
+        const result = FluentSQLBuilder.for(data).select([
+            'name', 'category'
+        ]).build()
 
+        const expected = data.map(({ name, category }) => ({ name, category }))
+
+        expect(result).toStrictEqual(expected)
     })
 
     test('#orderby given a collection it should order results by fields', () => {
+        const result = FluentSQLBuilder.for(data).orderBy('name').build()
+
+        const expected = [
+            {
+                id: 0,
+                name: 'dioner',
+                category: 'developer'
+            },
+            {
+                id: 2,
+                name: 'joão',
+                category: 'manager'
+            },
+            {
+                id: 1,
+                name: 'maria',
+                category: 'developer'
+            },
+            
+        ]
+
+        expect(result).toStrictEqual(expected)
 
     })
 
     test('pipeline', () => {
+        const result = FluentSQLBuilder.for(data)
+            .where({ category: 'developer' })
+            .where({ name: /m/ })
+            .select(['name', 'category'])
+            .orderBy('name')
+            .build()
 
+        const expected = data.filter(({ id }) => id === 1).map(({ name, category }) => ({ name, category }))
+
+        console.log(expected);
+        console.log(result);
+        expect(result).toStrictEqual(expected)
     })
 })
